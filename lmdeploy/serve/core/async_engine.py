@@ -268,7 +268,10 @@ class AsyncEngine:
             metrics_processor.increase_api_routed_requests()
             yield generator
         except (Exception, asyncio.CancelledError, GeneratorExit) as e:  # noqa
-            logger.error(f'[safe_run] session {session.session_id} exception caught: {type(e).__name__} {e}')
+            if isinstance(e, asyncio.CancelledError):
+                logger.warning(f'[safe_run] session {session.session_id} is cancelled.')
+            else:
+                logger.error(f'[safe_run] session {session.session_id} exception caught: {type(e).__name__} {e}')
             await session.async_abort()
             if self.backend == 'pytorch':
                 await handle.async_end(session.session_id)

@@ -444,7 +444,7 @@ async def chat_completions_v1(request: ChatCompletionRequest, raw_request: Reque
         gen_config.skip_special_tokens = False
         # internlm2 only uses contents inside function regardless of 'type'
         if not isinstance(request.tool_choice, str):
-            if gpt_oss_parser:
+            if gpt_oss_parser or VariableInterface.tool_parser is not None:
                 tools = [
                     item.model_dump() for item in request.tools
                     if item.function.name == request.tool_choice.function.name
@@ -455,7 +455,7 @@ async def chat_completions_v1(request: ChatCompletionRequest, raw_request: Reque
                     if item.function.name == request.tool_choice.function.name
                 ]
         else:
-            if gpt_oss_parser:
+            if gpt_oss_parser or VariableInterface.tool_parser is not None:
                 tools = [item.model_dump() for item in request.tools]
             else:
                 tools = [item.function.model_dump() for item in request.tools]
@@ -470,6 +470,19 @@ async def chat_completions_v1(request: ChatCompletionRequest, raw_request: Reque
         else:
             logger.warning('`enable_thinking` in `chat_template_kwargs` will override the value in request.')
     enable_thinking = chat_template_kwargs.get('enable_thinking', None)
+
+    if isinstance(request.messages, list):
+        for msg in request.messages:
+            if 'tool_calls' in msg and isinstance(msg['tool_calls'], list):
+                for tool_call in msg['tool_calls']:
+                    if 'function' in tool_call and 'arguments' in tool_call['function']:
+                        args = tool_call['function']['arguments']
+                        if isinstance(args, str):
+                            try:
+                                tool_call['function']['arguments'] = json.loads(args)
+                            except json.JSONDecodeError:
+                                pass
+
     result_generator = VariableInterface.async_engine.generate(
         request.messages,
         session,
