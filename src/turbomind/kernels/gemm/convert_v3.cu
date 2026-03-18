@@ -112,6 +112,10 @@ std::array<const LayoutConverter*, 2> GetConverters(DataType data_type,
             // clang-format on
         }
         else {
+            // clang-format off
+            // Big performance boost for sm70 when using row-major weights
+            if (sm == 70) return {W(sm70, kRow,   s884h | B | _1), {}};
+            // clang-format on
             return {};  //  trivial case: dense floating point
         }
     }
