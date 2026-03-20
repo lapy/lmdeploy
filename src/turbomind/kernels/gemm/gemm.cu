@@ -89,6 +89,10 @@ struct Gemm::Impl {
 
     std::vector<LaunchSpec> Find(Context& ctx, size_t barrier_size, size_t partials_size, int top_k)
     {
+        const auto& desc = ctx.desc();
+        const bool  is_sm70_dense_decode =
+            desc.arch == 700 && !desc.quant_b && (desc.type_b == kHalf || desc.type_b == kBfloat16) && desc.m <= 8;
+
         std::vector<Kernel*> feasible = ctx.Filter(registry_.kernels());
 
         std::vector<std::vector<LaunchSpec>> clusters;
@@ -111,7 +115,7 @@ struct Gemm::Impl {
         std::vector<std::pair<int, LaunchSpec>> specs;
 
         PopulateParam param{};
-        param.max_splits    = tuning_.max_splits;
+        param.max_splits    = is_sm70_dense_decode ? std::max(tuning_.max_splits, 24) : tuning_.max_splits;
         param.max_waves     = tuning_.max_waves;
         param.swizzle       = tuning_.swizzle.at(0);
         param.barriers_size = barrier_size;

@@ -679,6 +679,10 @@ void TurboMind::Impl::WarmUp(int index)
         std::vector<int> bss = linear.GetTuningSeq();
         if (bss.empty()) {
             bss = gemm::GenerateTuningSequence(gemm::GetDefaultTuningGenerators());
+            if (ctx.device_prop.major == 7 && ctx.device_prop.minor == 0
+                && std::find(bss.begin(), bss.end(), 1) == bss.end()) {
+                bss.insert(bss.begin(), 1);
+            }
         }
 
         const int max_fwd_token_num = engine_param_.max_forward_token_num;

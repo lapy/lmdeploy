@@ -35,20 +35,30 @@ void Registry::sm70_884_16()
     if constexpr (1) {
         // clang-format off
         using Cf = Config_F16<kColMajor>;  // default group_axis=-1 -> kFlat striding
-        // M=1 decode tiles; split-K keeps SM70 busy on large-N projections.
-        Add<Cf::Type<  8, 256,  32, 1, 4, 1, D, S, 2, true, 1, 1>>();
-        Add<Cf::Type<  8, 256,  64, 1, 4, 1, D, S, 2, true, 1, 1>>();
+        // Broad non-grouped fp16 search space for SM70, with the losing Qwen3.5
+        // decode tiles removed permanently from the baked-in list.
+        // Large / prefill-oriented tiles.
+        Add<Cf::Type<256, 128,  16, 4, 2, 1, D, D, 2,   0 , 1, 1, 128, 128>>();
+        Add<Cf::Type<128, 256,  16, 2, 4, 1, D, D, 2,   0 , 1, 1, 128, 128>>();
+        Add<Cf::Type<128, 128,  16, 2, 2, 1, D, D, 2, true, 1, 1,  64, 128>>();
+        Add<Cf::Type< 96, 128,  32, 2, 2, 1, D, S, 2, true, 1, 1,  48, 128>>();
+        Add<Cf::Type< 96,  64,  32, 2, 2, 1, D, D, 2, true, 1, 1>>();
+        Add<Cf::Type< 64, 256,  32, 1, 4, 1, D, S, 2, true, 1, 1,  64, 128>>();
+        Add<Cf::Type< 64, 256,  16, 1, 4, 1, D, S, 2, true, 1, 1,  64, 128>>();
+        Add<Cf::Type< 64, 128,  32, 1, 4, 1, D, S, 2, true, 1, 1>>();
+        Add<Cf::Type< 64, 128,  16, 1, 4, 1, D, S, 2, true, 1, 1,  32, 128>>();
+        Add<Cf::Type< 64,  64,  64, 2, 2, 1, D, S, 2, true, 1, 1>>();
+        Add<Cf::Type< 48, 128,  32, 1, 4, 1, D, S, 2, true, 1, 1>>();
+        Add<Cf::Type< 32, 256,  32, 1, 4, 1, D, S, 2, true, 1, 1,  32, 128>>();
+        Add<Cf::Type< 32, 128,  64, 1, 4, 1, D, S, 2, true, 1, 1>>();
+        Add<Cf::Type< 32, 128,  32, 1, 4, 1, D, S, 2, true, 1, 1>>();
+        // Small-M tiles for decode and small-batch generation.
+        Add<Cf::Type< 16, 256,  64, 1, 4, 1, D, S, 2, true, 1, 1>>();
+        Add<Cf::Type< 16, 256,  32, 1, 4, 1, D, S, 2, true, 1, 1>>();
+        Add<Cf::Type< 16, 128,  64, 1, 4, 1, D, S, 2, true, 1, 1>>();
+        Add<Cf::Type<  8, 128, 128, 1, 4, 1, D, S, 2, true, 1, 1>>();
         Add<Cf::Type<  8, 128,  64, 1, 4, 1, D, S, 2, true, 1, 1>>();
         Add<Cf::Type<  8, 128,  32, 1, 4, 1, D, S, 2, true, 1, 1>>();
-        // Small-M tiles for small-batch decode.
-        Add<Cf::Type< 16, 128,  64, 1, 4, 1, D, S, 2, true, 1, 1>>();
-        Add<Cf::Type< 16, 128,  32, 1, 4, 1, D, S, 2, true, 1, 1>>();
-        Add<Cf::Type< 32, 128,  32, 1, 4, 1, D, S, 2, true, 1, 1>>();
-        // Medium-M tiles for prefill.
-        Add<Cf::Type< 64, 128,  32, 1, 4, 1, D, S, 2, true, 1, 1>>();
-        Add<Cf::Type< 96,  64,  32, 2, 2, 1, D, D, 2, true, 1, 1>>();
-        Add<Cf::Type<128, 128,  16, 2, 2, 1, D, D, 2, true, 1, 1,  64, 128>>();
-        Add<Cf::Type<128, 256,  16, 2, 4, 1, D, D, 2,   0 , 1, 1, 128, 128>>();
         // clang-format on
     }
 }
