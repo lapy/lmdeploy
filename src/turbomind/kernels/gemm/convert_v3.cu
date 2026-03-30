@@ -112,6 +112,7 @@ std::array<const LayoutConverter*, 2> GetConverters(DataType data_type,
             // clang-format on
         }
         else {
+            if (sm == 70) return {W(sm70, kRow,   s884h | B | _1), {}};
             return {};  //  trivial case: dense floating point
         }
     }
